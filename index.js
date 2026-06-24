@@ -31,6 +31,12 @@ async function run() {
     const artworksCollection = db.collection("artworks");
 
     //add artworks related apis
+
+    app.get("/api/artworks", async (req, res) => {
+      const result = await artworksCollection.find().toArray();
+      res.send(result);
+    });
+
     app.post("/api/artworks", async (req, res) => {
       const artWorkData = req.body;
       const result = await artworksCollection.insertOne(artWorkData);
