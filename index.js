@@ -28,6 +28,14 @@ async function run() {
     await client.connect();
     const db = client.db("arthub_db");
     const userCollection = db.collection("user");
+    const artworksCollection = db.collection("artworks");
+
+    //add artworks related apis
+    app.post("/api/artworks", async (req, res) => {
+      const artWorkData = req.body;
+      const result = await artworksCollection.insertOne(artWorkData);
+      res.send(result);
+    });
 
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
