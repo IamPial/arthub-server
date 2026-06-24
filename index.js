@@ -3,6 +3,7 @@ const cors = require("cors");
 const app = express();
 const dotenv = require("dotenv").config();
 const { MongoClient, ServerApiVersion } = require("mongodb");
+const { createRemoteJWKSet, jwtVerify } = require("jose-cjs");
 const port = process.env.PORT;
 
 app.use(cors());
@@ -22,6 +23,32 @@ const client = new MongoClient(uri, {
   },
 });
 
+const JWKS = createRemoteJWKSet(
+  new URL(`${process.env.CLIENT_URL}/api/auth/jwks`),
+);
+
+const verifyToken = async (req, res, next) => {
+  const authHeader = req.headers.authorization;
+
+  if (!authHeader || !authHeader.startsWith("Bearer")) {
+    return res.status(401).json({ message: "Unauthorized" });
+  }
+
+  const token = authHeader.split(" ")[1];
+  if (!token) {
+    return res.status(401).json({ message: "Unauthorized" });
+  }
+
+  try {
+    const { payload } = await jwtVerify(token, JWKS);
+    req.user = payload;
+    next();
+  } catch (error) {
+    console.error("Token validation failed:", error);
+    throw error;
+  }
+};
+
 async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
@@ -37,7 +64,12 @@ async function run() {
       res.send(result);
     });
 
-    app.post("/api/artworks", async (req, res) => {
+    // app.patch("/api/artworks/:id", async(req,res)=>{
+
+    //   const  id = req.params.id
+    //   const findArtworks = await artworksCollection.find
+    // })
+    app.post("/api/artworks", verifyToken, async (req, res) => {
       const artWorkData = req.body;
       const result = await artworksCollection.insertOne(artWorkData);
       res.send(result);
