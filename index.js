@@ -2,7 +2,7 @@ const express = require("express");
 const cors = require("cors");
 const app = express();
 const dotenv = require("dotenv").config();
-const { MongoClient, ServerApiVersion } = require("mongodb");
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const { createRemoteJWKSet, jwtVerify } = require("jose-cjs");
 const port = process.env.PORT;
 
@@ -42,6 +42,7 @@ const verifyToken = async (req, res, next) => {
   try {
     const { payload } = await jwtVerify(token, JWKS);
     req.user = payload;
+    console.log(req.user);
     next();
   } catch (error) {
     console.error("Token validation failed:", error);
@@ -59,19 +60,25 @@ async function run() {
 
     //add artworks related apis
 
-    app.get("/api/artworks", async (req, res) => {
-      const result = await artworksCollection.find().toArray();
+    app.get("/api/artworks", verifyToken, async (req, res) => {
+      const userId = req.user.id;
+      const result = await artworksCollection.find({ userId }).toArray();
       res.send(result);
     });
 
-    // app.patch("/api/artworks/:id", async(req,res)=>{
-
-    //   const  id = req.params.id
-    //   const findArtworks = await artworksCollection.find
-    // })
     app.post("/api/artworks", verifyToken, async (req, res) => {
       const artWorkData = req.body;
       const result = await artworksCollection.insertOne(artWorkData);
+      res.send(result);
+    });
+
+    app.patch("/api/artworks/:id", verifyToken, async (req, res) => {
+      const id = req.params.id;
+      const updateData = req.body;
+      const result = await artworksCollection.updateOne(
+        { _id: new ObjectId(id) },
+        { $set: updateData },
+      );
       res.send(result);
     });
 
