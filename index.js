@@ -60,7 +60,7 @@ async function run() {
 
     //all artworks
     app.get("/api/all-artworks", async (req, res) => {
-      const { search, category, minPrice, maxPrice } = req.query;
+      const { search, category, minPrice, maxPrice, sortBy } = req.query;
       let query = {};
 
       //for name or title searching
@@ -82,6 +82,16 @@ async function run() {
         if (minPrice) query.price.$gte = minPrice;
         if (maxPrice) query.price.$lte = maxPrice;
       }
+
+      //for searching with lowest price or highest price
+      let newestData = { createdAt: -1 };
+      if (sortBy === "price-low")
+        newestData = {
+          price: 1,
+        };
+
+      if (sortBy === "price-high") newestData = { price: -1 };
+
       const result = await artworksCollection.find(query).toArray();
       res.send(result);
     });
