@@ -58,6 +58,18 @@ async function run() {
     const userCollection = db.collection("user");
     const artworksCollection = db.collection("artworks");
 
+    //artist apis
+    app.get("/api/artist-profiles/:id", async (req, res) => {
+      const { id } = req.params;
+      const artist = await userCollection.findOne({ _id: new ObjectId(id) });
+
+      const artworks = await artworksCollection.find({ userId: id }).toArray();
+      res.send({
+        artist,
+        artworks,
+      });
+    });
+
     //all artworks
     app.get("/api/all-artworks", async (req, res) => {
       const { search, category, minPrice, maxPrice, sortBy } = req.query;
