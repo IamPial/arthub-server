@@ -58,8 +58,35 @@ async function run() {
     const userCollection = db.collection("user");
     const artworksCollection = db.collection("artworks");
 
-    //add artworks related apis
+    //all artworks
+    app.get("/api/all-artworks", async (req, res) => {
+      const { search, category, minPrice, maxPrice } = req.query;
+      let query = {};
 
+      //for name or title searching
+      if (search && search != "undefined") {
+        query.$or = [
+          { title: { $regex: search, $options: "i" } },
+          { userName: { $regex: search, $options: "i" } },
+        ];
+      }
+
+      //for category searching
+      if (category && category != "undefined") {
+        query.category = { $regex: category, $options: "i" };
+      }
+
+      //for min or max price searching
+      if (minPrice || maxPrice) {
+        query.price = {};
+        if (minPrice) query.price.$gte = minPrice;
+        if (maxPrice) query.price.$lte = maxPrice;
+      }
+      const result = await artworksCollection.find(query).toArray();
+      res.send(result);
+    });
+
+    //add artworks related apis
     app.get("/api/artworks", verifyToken, async (req, res) => {
       const userId = req.user.id;
       const result = await artworksCollection.find({ userId }).toArray();
