@@ -57,6 +57,38 @@ async function run() {
     const db = client.db("arthub_db");
     const userCollection = db.collection("user");
     const artworksCollection = db.collection("artworks");
+    const subscriptionCollection = db.collection("subscriptions");
+
+    //subscriptions apis
+    app.post("/api/subscriptions", async (req, res) => {
+      const { sessionId, userId, priceId } = req.body;
+
+      const isExist = await subscriptionCollection.findOne({ sessionId });
+      if (isExist) {
+        return res.json({ message: "Already Exist" });
+      }
+
+      await subscriptionCollection.insertOne({
+        sessionId,
+        userId,
+        priceId,
+      });
+
+      //product plan id
+      const plans = {
+        price_1TmneuEzq9qApb9shf7JHVP4: "pro",
+        price_1Tmng5Ezq9qApb9sRnIhczlz: "premium",
+      };
+
+      const plan = plans[priceId] || "free";
+
+      await userCollection.updateOne(
+        { _id: new ObjectId(userId) },
+        { $set: { plan } },
+      );
+
+      res.json({ message: "Payment successful" });
+    });
 
     //artist apis
     app.get("/api/artist-profiles/:id", async (req, res) => {
