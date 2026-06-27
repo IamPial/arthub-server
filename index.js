@@ -61,6 +61,13 @@ async function run() {
     const transactionsCollection = db.collection("transactions");
 
     //payment transactions api
+    app.get("/api/transactions", verifyToken, async (req, res) => {
+      const userId = req.user.id;
+      const result = await transactionsCollection
+        .find({ buyerId: userId })
+        .toArray();
+      res.send(result);
+    });
 
     app.post("/api/transactions", async (req, res) => {
       const {
