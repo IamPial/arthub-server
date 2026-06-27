@@ -58,6 +58,37 @@ async function run() {
     const userCollection = db.collection("user");
     const artworksCollection = db.collection("artworks");
     const subscriptionCollection = db.collection("subscriptions");
+    const transactionsCollection = db.collection("transactions");
+
+    //payment transactions api
+
+    app.post("/api/transactions", async (req, res) => {
+      const {
+        sessionId,
+        price,
+        title,
+        productId,
+        artistId,
+        artistName,
+        artWorksImg,
+        buyerId,
+        buyerEmail,
+      } = req.body;
+
+      await transactionsCollection.insertOne({
+        sessionId,
+        price,
+        title,
+        productId,
+        artistId,
+        artistName,
+        artWorksImg,
+        buyerId,
+        buyerEmail,
+        purchaseDate: new Date(),
+      });
+      res.json({ message: "Purchase Successful" });
+    });
 
     //subscriptions apis
     app.post("/api/subscriptions", async (req, res) => {
