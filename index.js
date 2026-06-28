@@ -152,6 +152,31 @@ async function run() {
       res.json({ message: "Payment successful" });
     });
 
+    //plans related apis
+    app.get("/api/plans", verifyToken, async (req, res) => {
+      const userId = req.params.id;
+      const user = await userCollection.findOne({ _id: new ObjectId(userId) });
+      const plan = user?.plan || "free";
+
+      const purchaseCount = await transactionsCollection.countDocuments({
+        buyerId: userId,
+      });
+
+      const plansLimit = { free: 3, pro: 9, premium: Infinity };
+      const limit = plansLimit[plan];
+
+      if (purchaseCount >= limit) {
+        return res.json({
+          allowed: false,
+          message: "Upgrade your plans",
+        });
+      }
+
+      res.json({
+        allowed: true,
+      });
+    });
+
     //artist apis
     app.get("/api/artist-profiles/:id", async (req, res) => {
       const { id } = req.params;
