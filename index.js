@@ -68,6 +68,13 @@ async function run() {
         .toArray();
       res.send(result);
     });
+    app.get("/api/transactions/:id", async (req, res) => {
+      const { id } = req.params;
+      const result = await transactionsCollection.findOne({
+        _id: new ObjectId(id),
+      });
+      res.send(result);
+    });
 
     app.post("/api/transactions", async (req, res) => {
       const {
@@ -78,6 +85,7 @@ async function run() {
         artistId,
         artistName,
         artWorksImg,
+        description,
         buyerId,
         buyerEmail,
       } = req.body;
@@ -90,6 +98,7 @@ async function run() {
         artistId,
         artistName,
         artWorksImg,
+        description,
         buyerId,
         buyerEmail,
         purchaseDate: new Date(),
