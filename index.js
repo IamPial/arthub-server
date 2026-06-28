@@ -63,11 +63,20 @@ async function run() {
     //payment transactions api
     app.get("/api/transactions", verifyToken, async (req, res) => {
       const userId = req.user.id;
-      const result = await transactionsCollection
-        .find({ buyerId: userId })
-        .toArray();
+      const { role } = req.query;
+
+      let filter = {};
+
+      if (role === "artist") {
+        filter = { artistId: userId };
+      } else if (role === "buyer") {
+        filter = { buyerId: userId };
+      }
+
+      const result = await transactionsCollection.find(filter).toArray();
       res.send(result);
     });
+
     app.get("/api/transactions/:id", async (req, res) => {
       const { id } = req.params;
       const result = await transactionsCollection.findOne({
@@ -89,6 +98,10 @@ async function run() {
         buyerId,
         buyerEmail,
       } = req.body;
+      const isExist = await transactionsCollection.findOne({ sessionId });
+      if (isExist) {
+        return res.json({ message: "Already Exist" });
+      }
 
       await transactionsCollection.insertOne({
         sessionId,
@@ -101,6 +114,7 @@ async function run() {
         description,
         buyerId,
         buyerEmail,
+
         purchaseDate: new Date(),
       });
       res.json({ message: "Purchase Successful" });
@@ -151,6 +165,7 @@ async function run() {
 
     //all artworks
     app.get("/api/all-artworks", async (req, res) => {
+      const limit = req.query.limit ? parseInt(req.query.limit) : 0;
       const { search, category, minPrice, maxPrice, sortBy } = req.query;
       let query = {};
 
@@ -174,7 +189,11 @@ async function run() {
         if (maxPrice) query.price.$lte = maxPrice;
       }
 
-      const result = await artworksCollection.find(query).toArray();
+      const result = await artworksCollection
+        .find(query)
+        .sort({ _id: -1 })
+        .limit(limit)
+        .toArray();
       res.send(result);
     });
 
