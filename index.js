@@ -97,6 +97,7 @@ async function run() {
         description,
         buyerId,
         buyerEmail,
+        buyerName,
       } = req.body;
       const isExist = await transactionsCollection.findOne({ sessionId });
       if (isExist) {
@@ -114,7 +115,7 @@ async function run() {
         description,
         buyerId,
         buyerEmail,
-
+        buyerName,
         purchaseDate: new Date(),
       });
       res.json({ message: "Purchase Successful" });
