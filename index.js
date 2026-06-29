@@ -60,6 +60,30 @@ async function run() {
     const subscriptionCollection = db.collection("subscriptions");
     const transactionsCollection = db.collection("transactions");
 
+    //admin transactions details apis
+    app.get("/api/admin/transactions", verifyToken, async (req, res) => {
+      const purchase = await transactionsCollection.find().toArray();
+      const subscription = await subscriptionCollection.find().toArray();
+
+      const resultOfAllTransactions = [
+        ...purchase.map((transaction) => ({
+          _id: transaction._id,
+          type: "payments",
+          email: transaction.buyerEmail,
+          amount: transaction.price,
+          date: transaction.purchaseDate,
+        })),
+        ...subscription.map((subscribe) => ({
+          _id: subscribe._id,
+          type: "subscription",
+          email: subscribe.email,
+          amount: subscribe.amount,
+          date: subscribe.date,
+        })),
+      ];
+
+      res.send(resultOfAllTransactions);
+    });
     //payment transactions api
     app.get("/api/transactions", verifyToken, async (req, res) => {
       const userId = req.user.id;
@@ -106,6 +130,7 @@ async function run() {
 
       await transactionsCollection.insertOne({
         sessionId,
+        type: "payments",
         price,
         title,
         productId,
@@ -123,7 +148,7 @@ async function run() {
 
     //subscriptions apis
     app.post("/api/subscriptions", async (req, res) => {
-      const { sessionId, userId, priceId } = req.body;
+      const { sessionId, userId, priceId, userEmail } = req.body;
 
       const isExist = await subscriptionCollection.findOne({ sessionId });
       if (isExist) {
@@ -134,6 +159,10 @@ async function run() {
         sessionId,
         userId,
         priceId,
+        email: userEmail,
+        type: "subscription",
+        date: new Date(),
+        amount: priceId === "price_1TmneuEzq9qApb9shf7JHVP4" ? "9.99" : "19.99",
       });
 
       //product plan id
