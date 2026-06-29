@@ -60,6 +60,12 @@ async function run() {
     const subscriptionCollection = db.collection("subscriptions");
     const transactionsCollection = db.collection("transactions");
 
+    //user related apis
+    app.get("/api/users", verifyToken, async (req, res) => {
+      const result = await userCollection.find().toArray();
+      res.send(result);
+    });
+
     //admin transactions details apis
     app.get("/api/admin/transactions", verifyToken, async (req, res) => {
       const purchase = await transactionsCollection.find().toArray();
