@@ -128,6 +128,7 @@ async function run() {
         buyerId,
         buyerEmail,
         buyerName,
+        category,
       } = req.body;
       const isExist = await transactionsCollection.findOne({ sessionId });
       if (isExist) {
@@ -147,9 +148,18 @@ async function run() {
         buyerId,
         buyerEmail,
         buyerName,
+        category,
         purchaseDate: new Date(),
       });
       res.json({ message: "Purchase Successful" });
+    });
+
+    app.delete("/api/transactions/:id", verifyToken, async (req, res) => {
+      const id = req.params.id;
+      const result = await transactionsCollection.deleteOne({
+        _id: new ObjectId(id),
+      });
+      res.send(result);
     });
 
     //subscriptions apis
