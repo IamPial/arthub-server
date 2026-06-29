@@ -236,7 +236,7 @@ async function run() {
 
     //all artworks
     app.get("/api/all-artworks", async (req, res) => {
-      const limit = req.query.limit ? parseInt(req.query.limit) : 8;
+      const limit = req.query.limit ? parseInt(req.query.limit) : 0;
       const page = req.query.page ? parseInt(req.query.page) : 1;
       const skip = (Number(page) - 1) * Number(limit);
       const { search, category, minPrice, maxPrice, sortBy } = req.query;
