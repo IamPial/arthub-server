@@ -236,7 +236,9 @@ async function run() {
 
     //all artworks
     app.get("/api/all-artworks", async (req, res) => {
-      const limit = req.query.limit ? parseInt(req.query.limit) : 0;
+      const limit = req.query.limit ? parseInt(req.query.limit) : 8;
+      const page = req.query.page ? parseInt(req.query.page) : 1;
+      const skip = (Number(page) - 1) * Number(limit);
       const { search, category, minPrice, maxPrice, sortBy } = req.query;
       let query = {};
 
@@ -260,12 +262,17 @@ async function run() {
         if (maxPrice) query.price.$lte = maxPrice;
       }
 
+      //create pagination
+      const totalData = await artworksCollection.countDocuments(query);
+      const totalPages = Math.ceil(totalData / Number(limit));
+
       const result = await artworksCollection
         .find(query)
         .sort({ _id: -1 })
-        .limit(limit)
+        .skip(skip)
+        .limit(Number(limit))
         .toArray();
-      res.send(result);
+      res.send({ data: result, page: Number(page), totalPages });
     });
 
     //artworks details
